@@ -1,0 +1,9 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { createEstimate } from "@/app/actions";
+
+export default async function ProjectPage({params}:{params:Promise<{id:string}>}){const {id}=await params;const p=await prisma.project.findUnique({where:{id},include:{estimates:{orderBy:{updatedAt:"desc"}}}});if(!p)notFound();return <><div className="topline"><div><h1>{p.projectName}</h1><div className="hint">{p.customerName} ・ {p.siteAddress}</div></div><div className="actions"><Link className="button sub" href={`/projects/${id}/measurements`}>物件概要</Link></div></div>
+<div className="grid three" style={{marginBottom:20}}><div className="card"><div className="hint">案件種別</div><strong>{p.projectType}</strong></div><div className="card"><div className="hint">見積数</div><strong>{p.estimates.length}件</strong></div><div className="card"><div className="hint">更新日</div><strong>{p.updatedAt.toLocaleDateString("ja-JP")}</strong></div></div>
+<div className="card" style={{marginBottom:20}}><h2>新しい見積</h2><form action={createEstimate.bind(null,id)} className="actions"><input className="cell-input" name="estimateName" placeholder="例：シリコン塗装案"/><input className="cell-input" name="estimateNumber" placeholder="見積番号（空欄で自動）"/><button className="button">作成</button></form></div>
+<h2>見積一覧</h2><div className="table-wrap">{p.estimates.length?<table><thead><tr><th>見積名</th><th>番号</th><th>版</th><th>状態</th><th>合計</th><th>更新日</th></tr></thead><tbody>{p.estimates.map(e=><tr key={e.id}><td><Link href={`/estimates/${e.id}`}><strong>{e.estimateName}</strong></Link></td><td>{e.estimateNumber}</td><td>第{e.version}版</td><td><span className="badge">{e.status}</span></td><td className="money">{Number(e.totalAmount).toLocaleString()}円</td><td>{e.updatedAt.toLocaleDateString("ja-JP")}</td></tr>)}</tbody></table>:<div className="empty">見積はまだありません。</div>}</div></>}

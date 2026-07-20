@@ -1,0 +1,1 @@
+export default function Tax(){return <><div className="topline"><h1>税率設定</h1></div><div className="card"><div className="field" style={{maxWidth:300}}><label>消費税率（見積作成時にスナップショット保存）</label><input type="number" defaultValue="10" min="0" max="100"/>%</div><button className="button" style={{marginTop:20}}>保存</button></div></>}

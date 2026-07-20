@@ -1,0 +1,9 @@
+{
+  "estimate.customer_name": "テスト顧客 様",
+  "estimate.site_address": "神奈川県川崎市",
+  "estimate.issue_date": "2026-07-21",
+  "estimate.total_amount": 330000,
+  "estimate_items": [
+    { "name": "外壁塗装工事", "specification": "シリコン", "quantity": 100, "unit": "㎡", "unit_price": 3000, "amount": 300000 }
+  ]
+}

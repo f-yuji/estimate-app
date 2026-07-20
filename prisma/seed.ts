@@ -1,0 +1,8 @@
+import { PrismaClient } from "@prisma/client";
+const prisma=new PrismaClient();
+const categories=["外壁塗装","屋根塗装","足場","シーリング","付帯部塗装","下地補修","長尺シート","電気工事","設備工事","仮設工事","環境安全費","機械器具費"];
+const sources=[
+  ["NET_WALL_AREA","控除後外壁面積","㎡"],["GROSS_WALL_AREA","外壁総面積","㎡"],["ROOF_AREA","屋根面積","㎡"],["EXTERIOR_TOTAL_AREA","外装総面積","㎡"],["SCAFFOLD_AREA","足場面積","㎡"],["FASCIA_LENGTH","破風長さ","m"],["EAVES_GUTTER_LENGTH","軒樋長さ","m"],["VERTICAL_GUTTER_LENGTH","竪樋長さ","m"],["SEALING_LENGTH","シーリング長さ","m"],["MANUAL","手入力","式"]
+];
+async function main(){await prisma.user.upsert({where:{id:"default-user"},create:{id:"default-user",name:"管理者"},update:{}});await prisma.companySetting.upsert({where:{id:1},create:{id:1,companyName:"",defaultTaxRate:0.1},update:{}});for(const [i,name] of categories.entries()){await prisma.workCategory.upsert({where:{code:`CAT_${i+1}`},create:{code:`CAT_${i+1}`,name,displayOrder:i+1},update:{name}})}for(const [code,displayName,unit] of sources){await prisma.quantitySourceMaster.upsert({where:{code},create:{code,displayName,unit},update:{displayName,unit}})}const wall=await prisma.workCategory.findUniqueOrThrow({where:{code:"CAT_1"}});for(const item of [{code:"EXT_WALL_PRIMER",name:"外壁 下塗り",price:900,cost:450,source:"NET_WALL_AREA"},{code:"EXT_WALL_TOPCOAT",name:"外壁 上塗り",price:2200,cost:1100,source:"NET_WALL_AREA"}])await prisma.workItemMaster.upsert({where:{itemCode:item.code},create:{itemCode:item.code,displayName:item.name,categoryId:wall.id,unit:"㎡",standardSalesPrice:item.price,standardCost:item.cost,defaultQuantitySource:item.source,quantityCandidatesJson:JSON.stringify(["NET_WALL_AREA","GROSS_WALL_AREA","MANUAL"])},update:{}})}
+main().finally(()=>prisma.$disconnect());

@@ -1,0 +1,12 @@
+{
+  "estimate.customer_name": { "sheet": "見積書", "cell": "C4" },
+  "estimate.site_address": { "sheet": "見積書", "cell": "C5" },
+  "estimate.issue_date": { "sheet": "見積書", "cell": "K4" },
+  "estimate.total_amount": { "sheet": "見積書", "cell": "D10" },
+  "estimate_items": {
+    "sheets": ["内訳明細書", "内訳明細書 (2)"],
+    "start_row": 5,
+    "end_row": 28,
+    "columns": { "name": "B", "specification": "D", "quantity": "F", "unit": "G", "unit_price": "H", "amount": "I" }
+  }
+}

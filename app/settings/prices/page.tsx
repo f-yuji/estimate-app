@@ -1,0 +1,3 @@
+import { prisma } from "@/lib/prisma";
+export const dynamic="force-dynamic";
+export default async function Prices(){const patterns=await prisma.pricePattern.findMany({include:{_count:{select:{items:true}}}});return <><div className="topline"><div><h1>単価パターン設定</h1><div className="hint">適用時点の単価を見積へコピーし、過去見積は変えません</div></div><button className="button">＋ パターン追加</button></div><div className="table-wrap">{patterns.length?<table><thead><tr><th>名称</th><th>登録項目数</th><th>更新日</th></tr></thead><tbody>{patterns.map(x=><tr key={x.id}><td>{x.name}</td><td>{x._count.items}</td><td>{x.updatedAt.toLocaleDateString("ja-JP")}</td></tr>)}</tbody></table>:<div className="empty">単価パターンはまだありません。</div>}</div></>}

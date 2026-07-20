@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default async function Export({params}:{params:Promise<{id:string}>}){const {id}=await params;return <><div className="topline"><h1>Excel・PDF出力</h1><Link href={`/estimates/${id}`} className="button sub">見積へ戻る</Link></div><div className="card"><h2>帳票出力</h2><p>修正済みxlsmテンプレートを複製し、見積書・内訳明細書・内訳明細書(2)へ転記します。</p><div className="actions"><button className="button">xlsmを出力</button><button className="button sub">PDFを出力</button></div><p className="hint">PDFはWindows版ExcelのCOM出力を優先します。Excel未導入環境では利用できません。</p></div></>}

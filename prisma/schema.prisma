@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String   @default("管理者")
+  createdAt DateTime @default(now())
+  logs      OperationLog[]
+}
+
+model CompanySetting {
+  id                 Int      @id @default(1)
+  companyName        String   @default("")
+  tradeName          String?
+  representativeName String?
+  postalCode         String?
+  address            String?
+  phone              String?
+  fax                String?
+  email              String?
+  invoiceNumber      String?
+  bankName           String?
+  bankBranch         String?
+  accountType        String?
+  accountNumber      String?
+  accountHolder      String?
+  constructionLicense String?
+  logoPath           String?
+  sealPath           String?
+  defaultValidityDays Int      @default(30)
+  defaultTaxRate     Decimal   @default(0.10)
+  updatedAt          DateTime  @updatedAt
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  projectName     String
+  constructionName String?
+  customerName    String
+  customerAddress String?
+  siteAddress     String
+  phone           String?
+  estimateDate    DateTime?
+  estimatedPeriod String?
+  personInCharge  String?
+  projectType     String   @default("戸建")
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  measurement     ProjectMeasurement?
+  openings        ProjectOpening[]
+  estimates       Estimate[]
+}
+
+model ProjectMeasurement {
+  id                  String   @id @default(cuid())
+  projectId           String   @unique
+  deductionMethod     String   @default("RATE")
+  valuesJson          String   @default("{}")
+  calculatedJson      String   @default("{}")
+  updatedAt           DateTime @updatedAt
+  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ProjectOpening {
+  id        String  @id @default(cuid())
+  projectId String
+  name      String
+  direction String
+  width     Decimal
+  height    Decimal
+  quantity  Int     @default(1)
+  area      Decimal
+  notes     String?
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model WorkCategory {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String
+  displayOrder Int      @default(0)
+  active       Boolean  @default(true)
+  items        WorkItemMaster[]
+}
+
+model QuantitySourceMaster {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  displayName String
+  unit        String
+  active      Boolean  @default(true)
+}
+
+model WorkItemMaster {
+  id                    String   @id @default(cuid())
+  itemCode              String   @unique
+  displayName           String
+  categoryId            String
+  unit                   String
+  standardSalesPrice    Decimal  @default(0)
+  standardCost          Decimal  @default(0)
+  defaultQuantitySource String?
+  quantityCandidatesJson String  @default("[]")
+  displayOrder          Int      @default(0)
+  active                Boolean  @default(true)
+  notes                 String?
+  category              WorkCategory @relation(fields: [categoryId], references: [id])
+  estimateItems         EstimateItem[]
+  patternItems          PricePatternItem[]
+}
+
+model PricePattern {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items     PricePatternItem[]
+}
+
+model PricePatternItem {
+  id           String   @id @default(cuid())
+  patternId    String
+  workItemId   String
+  salesPrice   Decimal
+  costPrice    Decimal?
+  pattern      PricePattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  workItem     WorkItemMaster @relation(fields: [workItemId], references: [id])
+  @@unique([patternId, workItemId])
+}
+
+model Estimate {
+  id             String   @id @default(cuid())
+  projectId      String
+  estimateName   String
+  estimateNumber String   @unique
+  issueDate      DateTime @default(now())
+  validUntil     DateTime?
+  status         String   @default("下書き")
+  version        Int      @default(1)
+  copiedFromId   String?
+  changeReason   String?
+  changedBy      String   @default("管理者")
+  notes          String?
+  subtotal       Decimal  @default(0)
+  discount       Decimal  @default(0)
+  taxRate        Decimal  @default(0.10)
+  taxAmount      Decimal  @default(0)
+  totalAmount    Decimal  @default(0)
+  confirmedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  items          EstimateItem[]
+  materials      EstimateMaterial[]
+  versions       EstimateVersion[]
+  contractSnapshots ContractSnapshot[]
+}
+
+model EstimateVersion {
+  id               String   @id @default(cuid())
+  estimateId       String
+  version          Int
+  snapshotJson     String
+  changeReason     String?
+  changedBy        String
+  previousAmount   Decimal?
+  newAmount        Decimal
+  confirmedAt      DateTime?
+  createdAt        DateTime @default(now())
+  estimate         Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+}
+
+model EstimateItem {
+  id                     String   @id @default(cuid())
+  estimateId             String
+  displayOrder           Int
+  level                  Int      @default(0)
+  rowType                String   @default("NORMAL")
+  workItemId             String?
+  itemCodeSnapshot       String?
+  nameSnapshot           String
+  specification          String?
+  quantitySourceSnapshot String?
+  autoQuantity           Decimal?
+  manualQuantity         Decimal?
+  unitSnapshot           String
+  standardPriceSnapshot  Decimal  @default(0)
+  manualPrice            Decimal?
+  costPrice              Decimal  @default(0)
+  materialCost           Decimal  @default(0)
+  subcontractCost        Decimal  @default(0)
+  otherCost              Decimal  @default(0)
+  notes                  String?
+  isFreeInput            Boolean  @default(false)
+  estimate               Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  workItem               WorkItemMaster? @relation(fields: [workItemId], references: [id])
+}
+
+model Material {
+  id             String  @id @default(cuid())
+  name           String
+  standardCoverage Decimal
+  containerSize  Decimal
+  coats          Int     @default(1)
+  lossRate       Decimal @default(0)
+  active         Boolean @default(true)
+}
+
+model EstimateMaterial {
+  id             String   @id @default(cuid())
+  estimateId     String
+  materialName   String
+  targetArea     Decimal
+  coverage       Decimal
+  containerSize  Decimal
+  coats          Int
+  lossRate       Decimal
+  requiredAmount Decimal
+  requiredCans   Int
+  estimate       Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+}
+
+model ContractSnapshot {
+  id           String   @id @default(cuid())
+  estimateId   String
+  snapshotJson String
+  contractType String   @default("本契約")
+  confirmedAt  DateTime @default(now())
+  estimate     Estimate @relation(fields: [estimateId], references: [id])
+}
+
+model ExportLog {
+  id         String   @id @default(cuid())
+  estimateId String
+  format     String
+  filePath   String
+  success    Boolean
+  error      String?
+  createdAt  DateTime @default(now())
+}
+
+model OperationLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  targetType String
+  targetId   String
+  action     String
+  beforeJson String?
+  afterJson  String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+}
