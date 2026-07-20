@@ -1,6 +1,7 @@
 export const directions = ["east", "west", "south", "north"] as const;
 export type Direction = typeof directions[number];
-export type PropertyValues = Record<string, string | number | boolean | null>;
+export type CustomAccessory = { name: string; quantity: number; unit: string; notes?: string };
+export type PropertyValues = Record<string, string | number | boolean | null | CustomAccessory[]>;
 export type PropertyOpening = { id?: string; name: string; direction: Direction; width: number; height: number; quantity: number; notes?: string };
 
 const n = (values: PropertyValues, key: string) => {
@@ -26,11 +27,12 @@ export function calculateProperty(values: PropertyValues, openings: PropertyOpen
   const netWallArea = directions.reduce((sum, d) => sum + netWallByDirection[d], 0);
 
   // Excel G13: 各面の長さに隣接する軒先長さと離れ0.2mを加え、高さ+1mを掛ける。
+  const scaffold = (length: number, adjacent1: number, adjacent2: number, height: number) => length + adjacent1 + adjacent2 === 0 ? 0 : (length + adjacent1 + adjacent2 + 0.2) * (height + 1);
   const scaffoldByDirection = {
-    east: (n(values, "southEaveLength") + n(values, "northEaveLength") + n(values, "eastWallLength") + 0.2) * (n(values, "eastWallHeight") + 1),
-    west: (n(values, "southEaveLength") + n(values, "northEaveLength") + n(values, "westWallLength") + 0.2) * (n(values, "westWallHeight") + 1),
-    south: (n(values, "eastEaveLength") + n(values, "westEaveLength") + n(values, "southWallLength") + 0.2) * (n(values, "southWallHeight") + 1),
-    north: (n(values, "eastEaveLength") + n(values, "westEaveLength") + n(values, "northWallLength") + 0.2) * (n(values, "northWallHeight") + 1),
+    east: scaffold(n(values, "eastWallLength"), n(values, "southEaveLength"), n(values, "northEaveLength"), n(values, "eastWallHeight")),
+    west: scaffold(n(values, "westWallLength"), n(values, "southEaveLength"), n(values, "northEaveLength"), n(values, "westWallHeight")),
+    south: scaffold(n(values, "southWallLength"), n(values, "eastEaveLength"), n(values, "westEaveLength"), n(values, "southWallHeight")),
+    north: scaffold(n(values, "northWallLength"), n(values, "eastEaveLength"), n(values, "westEaveLength"), n(values, "northWallHeight")),
   };
   const scaffoldArea = Object.values(scaffoldByDirection).reduce((sum, value) => sum + value, 0);
 

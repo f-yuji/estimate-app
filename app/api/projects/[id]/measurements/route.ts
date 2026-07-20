@@ -12,6 +12,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   for (const [key, value] of Object.entries(values)) {
     if (typeof value === "number" && (!Number.isFinite(value) || value < 0)) return NextResponse.json({ error: `${key}には0以上の数値を入力してください。` }, { status: 400 });
   }
+  if (Array.isArray(values.customAccessories) && values.customAccessories.some(row => !row.name.trim() || !Number.isFinite(row.quantity) || row.quantity < 0 || !row.unit.trim())) return NextResponse.json({ error: "自由入力の付帯部は名称・数量・単位を入力してください。" }, { status: 400 });
   for (const opening of openings) {
     if (!opening.name.trim() || !directions.includes(opening.direction) || [opening.width, opening.height, opening.quantity].some(v => !Number.isFinite(v) || v < 0)) return NextResponse.json({ error: "開口部の名称・方角・寸法・数量を確認してください。" }, { status: 400 });
   }
