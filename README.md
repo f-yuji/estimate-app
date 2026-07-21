@@ -67,3 +67,14 @@ python scripts\analyze_excel.py
 - Excelの図形・フォームコントロールを完全に再保存する安全性のため、最終PDFはExcel COM前提です。
 - 会社電話番号は図形内文字として残る可能性があるため、初回運用前に実帳票の目視確認が必要です。
 - ドラッグ並べ替え、案件/見積コピー、確定処理の画面操作はDB構造のみで、UI接続は未完了です。
+
+## Fly.ioデプロイ
+
+本番アプリは `https://estimate-app-f-yuji.fly.dev` です。`DATABASE_URL`と`DIRECT_URL`はFly Secretsへ登録し、リポジトリやDockerイメージには含めません。
+
+```powershell
+flyctl deploy --remote-only --app estimate-app-f-yuji
+flyctl status --app estimate-app-f-yuji
+```
+
+東京リージョンの1台構成で、アクセスがない場合は自動停止し、アクセス時に自動起動します。
